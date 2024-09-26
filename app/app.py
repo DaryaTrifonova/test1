@@ -106,7 +106,7 @@ def new():
                     if genre:
                         genres_list.append(genre)
                     else:
-                        flash(f"Danger {i}", "danger")
+                        flash("Danger", "danger")
 
                 book = Book(**params, image_id=img.id)
                 book.prepare_to_save()
