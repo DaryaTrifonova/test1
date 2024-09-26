@@ -41,17 +41,17 @@ def new_review(book_id):
 
                
                 db.session.commit()
-                flash('Рецензия опубликована!', 'success')
+                flash('Success', 'success')
 
             except:
               
                 db.session.rollback()
-                flash('Возникла ошибка при обращении к БД', 'warning')
+                flash('Danger', 'warning')
                 return render_template('reviews/new_edit.html', book_id=book_id)
 
         else:
          
-            flash('Вы уже оставили рецензию к этой книге', 'warning')
+            flash('Danger', 'warning')
             return redirect(url_for('show', book_id=book_id))  
 
   
