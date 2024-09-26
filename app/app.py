@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 app = Flask(__name__)
 application = app
 
-app.config.from_pyfile('config.py')
+app.config.from_pyfile("config.py")
 
 db.init_app(app)
 migrate = Migrate(app, db)
@@ -46,7 +46,7 @@ def get_last_five():
                       .limit(5)
                       .all())
     else:
-        last_books = session.get('last_books')
+        last_books = session.get("last_books")
     result = []
     if current_user.is_authenticated:
         for book_visit in last_books:
@@ -57,13 +57,13 @@ def get_last_five():
                 result.append(Book.query.get(book_visit))
     return result 
 
-@app.route('/')
+@app.route("/")
 def index():
-    page = request.args.get('page', 1, type=int)
+    page = request.args.get("page", 1, type=int)
     top_five_books = get_top_five()
     last_five_books = get_last_five()
     books = Book.query.order_by(Book.year_release.desc())
-    pagination = books.paginate(page=page, per_page=app.config['PER_PAGE'])
+    pagination = books.paginate(page=page, per_page=app.config["PER_PAGE"])
     genres = Genre.query.all()
     books = pagination.items
     book = None
@@ -72,41 +72,41 @@ def index():
                            top_books=top_five_books,
                            last_books=last_five_books)
 
-@app.route('/images/<image_id>')
+@app.route("/images/<image_id>")
 def image(image_id):
     img = Image.query.get(image_id)
     if img is None:
         abort(404)
-    return send_from_directory(app.config['UPLOAD_FOLDER'],
+    return send_from_directory(app.config["UPLOAD_FOLDER"],
                                img.file_name)
 
 BOOKS_PARAMS = [
-    'name', 'author', 'publisher', 'year_release', 'pages_volume',
-    'short_desc',
+    "name", "author", "publisher", "year_release", "pages_volume",
+    "short_desc",
 ]
 
-@app.route('/new', methods=["POST", "GET"])
+@app.route("/new", methods=["POST", "GET"])
 @login_required
-@check_rights('create')
+@check_rights("create")
 def new():
     if request.method == "POST":
-        f = request.files.get('background_img')
+        f = request.files.get("background_img")
         if f and f.filename:
             img = ImageSaver(f).save()
             params = extract_params(BOOKS_PARAMS)
-            if not params['year_release'].isdigit():
-                flash('Danger', 'danger')
-            if not params['pages_volume'].isdigit():
-                flash('Danger', 'danger')
+            if not params["year_release"].isdigit():
+                flash("Danger", "danger")
+            if not params["pages_volume"].isdigit():
+                flash("Danger", "danger")
             else:
-                genres = request.form.getlist('genres')
+                genres = request.form.getlist("genres")
                 genres_list = []
                 for i in genres:
                     genre = Genre.query.filter_by(id=i).first()
                     if genre:
                         genres_list.append(genre)
                     else:
-                        flash(f'Danger {i}', 'danger')
+                        flash(f"Danger {i}", "danger")
 
                 book = Book(**params, image_id=img.id)
                 book.prepare_to_save()
@@ -114,41 +114,41 @@ def new():
                 try:
                     db.session.add(book)
                     db.session.commit()
-                    flash('Success', 'success')
-                    return redirect(url_for('show', book_id=book.id))
+                    flash("Success", "success")
+                    return redirect(url_for("show", book_id=book.id))
                 except Exception as e:
                     db.session.rollback()
-                    flash(f'Danger: {e}', 'danger')
+                    flash(f"Danger: {e}", "danger")
         else:
-            flash('Danger', 'danger')
+            flash("Danger", "danger")
 
     genres = Genre.query.all()
-    return render_template('books/new_edit.html',
-                           action='create',
+    return render_template("books/new_edit.html",
+                           action="create",
                            genres=genres,
                            book={})
 
-@app.route('/edit/<int:book_id>', methods=["POST", "GET"])
+@app.route("/edit/<int:book_id>", methods=["POST", "GET"])
 @login_required
-@check_rights('edit')
+@check_rights("edit")
 def edit(book_id):
     if request.method == "POST":
         params = extract_params(BOOKS_PARAMS)
-        genres = request.form.getlist('genres')
+        genres = request.form.getlist("genres")
         genres_list = []
 
         book = Book.query.get(book_id)
-        if not params['year_release'].isdigit():
-            flash('Danger', 'danger')
-        if not params['pages_volume'].isdigit():
-            flash('Danger', 'danger')
+        if not params["year_release"].isdigit():
+            flash("Danger", "danger")
+        if not params["pages_volume"].isdigit():
+            flash("Danger", "danger")
         else:
-            book.name = params['name']
-            book.author = params['author']
-            book.publisher = params['publisher']
-            book.year_release = params['year_release']
-            book.pages_volume = params['pages_volume']
-            book.short_desc = params['short_desc']
+            book.name = params["name"]
+            book.author = params["author"]
+            book.publisher = params["publisher"]
+            book.year_release = params["year_release"]
+            book.pages_volume = params["pages_volume"]
+            book.short_desc = params["short_desc"]
             for i in genres:
                 genre = Genre.query.filter_by(id=i).first()
                 genres_list.append(genre)
@@ -156,22 +156,22 @@ def edit(book_id):
             try:
                 db.session.add(book)
                 db.session.commit()
-                flash('Success', 'success')
-                return redirect(url_for('show', book_id=book.id))
+                flash("Success", "success")
+                return redirect(url_for("show", book_id=book.id))
             except Exception as e:
                 db.session.rollback()
-                flash(f'Danger: {e}', 'danger')
+                flash(f"Danger: {e}", "danger")
 
     book = Book.query.get(book_id)
     genres = Genre.query.all()
-    return render_template('books/new_edit.html',
-                           action='edit',
+    return render_template("books/new_edit.html",
+                           action="edit",
                            genres=genres,
                            book=book)
 
-@app.route('/<int:book_id>/delete', methods=['POST'])
+@app.route("/<int:book_id>/delete", methods=["POST"])
 @login_required
-@check_rights('delete')
+@check_rights("delete")
 def delete(book_id):
     book = Book.query.get(book_id)
 
@@ -191,20 +191,20 @@ def delete(book_id):
         if references == 1:
             image = Image.query.get(book.image.id)
             delete_path = os.path.join(
-                app.config['UPLOAD_FOLDER'],
+                app.config["UPLOAD_FOLDER"],
                 image.file_name)
             db.session.delete(image)
             os.remove(delete_path)
         db.session.commit()
-        flash('Success', 'success')
+        flash("Success", "success")
     except:
         db.session.rollback()
-        flash('Danger', 'danger')
+        flash("Danger", "danger")
 
-    return redirect(url_for('index'))
+    return redirect(url_for("index"))
 
 
-@app.route('/<int:book_id>')
+@app.route("/<int:book_id>")
 def show(book_id):
 
     book = Book.query.get(book_id)
@@ -226,7 +226,7 @@ def show(book_id):
 
     reviews.all()  
 
-    return render_template('books/show.html',
+    return render_template("books/show.html",
                            book=book,
                            user_review=user_review,
                            reviews=reviews)
@@ -235,8 +235,8 @@ def add_book_visit(book_id, user_id):
     try:
 
         visit_params = {
-            'user_id': user_id,
-            'book_id': book_id,
+            "user_id": user_id,
+            "book_id": book_id,
         }
         db.session.add(AllBookVisits(**visit_params))  
         db.session.commit() 
@@ -265,7 +265,7 @@ def last_visit_for_user(book_id, user_id):
 
 def last_visit_for_anonim(book_id):
    
-    data_from_cookies = session.get('last_books')
+    data_from_cookies = session.get("last_books")
 
   
     if data_from_cookies:
@@ -282,18 +282,18 @@ def last_visit_for_anonim(book_id):
         data_from_cookies = [book_id]
 
   
-    session['last_books'] = data_from_cookies
+    session["last_books"] = data_from_cookies
 
 
 @app.before_request
 def logger():
   
-    if (request.endpoint == 'static'
-        or request.endpoint == 'image'):
+    if (request.endpoint == "static"
+        or request.endpoint == "image"):
         return
-    elif request.endpoint == 'show':  
-        user_id = getattr(current_user, 'id', None)  
-        book_id = request.view_args.get('book_id') 
+    elif request.endpoint == "show":  
+        user_id = getattr(current_user, "id", None)  
+        book_id = request.view_args.get("book_id") 
 
        
         if current_user.is_authenticated:
@@ -307,8 +307,8 @@ def logger():
         this_day = AllBookVisits.query.filter_by(book_id=book_id).filter(AllBookVisits.created_at >= start)
 
         log_params = {
-            'book_id': book_id,
-            'user_id': user_id,
+            "book_id": book_id,
+            "user_id": user_id,
         }
 
        
