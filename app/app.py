@@ -95,9 +95,9 @@ def new():
             img = ImageSaver(f).save()
             params = extract_params(BOOKS_PARAMS)
             if not params['year_release'].isdigit():
-                flash('Год должен быть числом', 'danger')
+                flash('Danger', 'danger')
             if not params['pages_volume'].isdigit():
-                flash('Объем страниц должен быть числом', 'danger')
+                flash('Danger', 'danger')
             else:
                 genres = request.form.getlist('genres')
                 genres_list = []
@@ -106,7 +106,7 @@ def new():
                     if genre:
                         genres_list.append(genre)
                     else:
-                        flash(f'Жанр с id {i} не найден', 'danger')
+                        flash(f'Danger {i}', 'danger')
 
                 book = Book(**params, image_id=img.id)
                 book.prepare_to_save()
@@ -114,13 +114,13 @@ def new():
                 try:
                     db.session.add(book)
                     db.session.commit()
-                    flash('Книга успешно добавлена', 'success')
+                    flash('Success', 'success')
                     return redirect(url_for('show', book_id=book.id))
                 except Exception as e:
                     db.session.rollback()
-                    flash(f'При сохранении данных возникла ошибка: {e}', 'danger')
+                    flash(f'Danger: {e}', 'danger')
         else:
-            flash('У книги должна быть обложка', 'danger')
+            flash('Danger', 'danger')
 
     genres = Genre.query.all()
     return render_template('books/new_edit.html',
@@ -139,9 +139,9 @@ def edit(book_id):
 
         book = Book.query.get(book_id)
         if not params['year_release'].isdigit():
-            flash('Год должен быть числом', 'danger')
+            flash('Danger', 'danger')
         if not params['pages_volume'].isdigit():
-            flash('Объем страниц должен быть числом', 'danger')
+            flash('Danger', 'danger')
         else:
             book.name = params['name']
             book.author = params['author']
@@ -156,11 +156,11 @@ def edit(book_id):
             try:
                 db.session.add(book)
                 db.session.commit()
-                flash('Книга успешно отредактирована', 'success')
+                flash('Success', 'success')
                 return redirect(url_for('show', book_id=book.id))
             except Exception as e:
                 db.session.rollback()
-                flash(f'При сохранении данных возникла ошибка: {e}', 'danger')
+                flash(f'Danger: {e}', 'danger')
 
     book = Book.query.get(book_id)
     genres = Genre.query.all()
@@ -196,10 +196,10 @@ def delete(book_id):
             db.session.delete(image)
             os.remove(delete_path)
         db.session.commit()
-        flash('Удаление книги прошло успешно', 'success')
+        flash('Success', 'success')
     except:
         db.session.rollback()
-        flash('Во время удаления книги произошла ошибка', 'danger')
+        flash('Danger', 'danger')
 
     return redirect(url_for('index'))
 
