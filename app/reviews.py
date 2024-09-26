@@ -41,17 +41,17 @@ def new_review(book_id):
 
                
                 db.session.commit()
-                flash('Success', 'success')
+                
 
             except:
               
                 db.session.rollback()
-                flash('Danger', 'warning')
+               
                 return render_template('reviews/new_edit.html', book_id=book_id)
 
         else:
          
-            flash('Danger', 'warning')
+           
             return redirect(url_for('show', book_id=book_id))  
 
   
